@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Отчёт SolarBridge: энергия и деньги за период">
+  <title>Отчёт · HIDEN</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/report.css">
+  <script src="/assets/report.js" defer></script>
+</head>
+<body>
+  <div class="shell report-shell">
+    <header class="report-toolbar no-print">
+      <a class="brand" href="/"><img class="brand-logo" src="/assets/logo.svg" alt="HIDEN Control"></a>
+      <div class="report-controls">
+        <div class="report-ranges" role="group">
+          <button type="button" data-days="7">7</button>
+          <button type="button" data-days="30" class="is-active">30</button>
+          <button type="button" data-days="90">90</button>
+          <button type="button" data-days="365">365</button>
+        </div>
+        <label class="report-custom">
+          <span data-i18n="report.custom_from">с</span>
+          <input type="date" id="reportFrom">
+          <span data-i18n="report.custom_to">по</span>
+          <input type="date" id="reportTo">
+        </label>
+        <div class="language-switcher" role="group">
+          <button type="button" data-lang="ru" aria-pressed="true">RUS</button><span>|</span><button type="button" data-lang="en" aria-pressed="false">ENG</button>
+        </div>
+        <button type="button" class="report-print" id="reportPrint">
+          <span data-i18n="report.print">Печать / PDF</span> <span>⎙</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="report-page">
+      <section class="report-title">
+        <div>
+          <p class="report-eyebrow">HIDEN <b>CONTROL</b> · <span data-i18n="report.device">HS-20-5548 PRO</span></p>
+          <h1 id="reportHeading" data-i18n="report.heading">Отчёт за период</h1>
+          <p class="report-sub" id="reportSub">--</p>
+        </div>
+        <dl class="report-meta">
+          <div><dt data-i18n="report.master">master_id</dt><dd id="metaMaster">--</dd></div>
+          <div><dt data-i18n="report.model">Модель</dt><dd id="metaModel">--</dd></div>
+          <div><dt data-i18n="report.serial">Serial</dt><dd id="metaSerial">--</dd></div>
+          <div><dt data-i18n="report.firmware">Firmware</dt><dd id="metaFirmware">--</dd></div>
+          <div><dt data-i18n="report.printed">Печатано</dt><dd id="metaPrinted">--</dd></div>
+          <div><dt>SolarBridge</dt><dd id="metaVersion">--</dd></div>
+        </dl>
+      </section>
+
+      <section class="report-summary" id="reportSummary" hidden>
+        <h2 data-i18n="report.summary_title">Сводка за период</h2>
+        <div class="report-summary-grid" id="summaryGrid"></div>
+        <p class="report-summary-note" id="summaryNote"></p>
+      </section>
+
+      <section class="report-block" id="chartBlock" hidden>
+        <h2 data-i18n="report.chart_title">Энергия по дням</h2>
+        <div class="report-chart" id="reportChart"></div>
+        <div class="report-legend">
+          <span><i class="leg-pv"></i><span data-i18n="report.leg_pv">PV генерация</span></span>
+          <span><i class="leg-load"></i><span data-i18n="report.leg_load">Нагрузка</span></span>
+          <span><i class="leg-buy"></i><span data-i18n="report.leg_buy">Из сети</span></span>
+        </div>
+      </section>
+
+      <section class="report-block" id="tableBlock" hidden>
+        <h2 id="tableTitle" data-i18n="report.table_days">По суткам</h2>
+        <table class="report-table" id="reportTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+          <tfoot id="tableFoot"></tfoot>
+        </table>
+      </section>
+
+      <section class="report-block" id="recordsBlock" hidden>
+        <h2 data-i18n="report.records_title">Рекорды периода</h2>
+        <div class="report-records-grid" id="recordsGrid"></div>
+      </section>
+
+      <section class="report-block" id="batteriesBlock" hidden>
+        <h2 data-i18n="report.batteries_title">Батареи · снимок на момент отчёта</h2>
+        <table class="report-table" id="batteryTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="report-block" id="eventsBlock" hidden>
+        <h2 data-i18n="report.events_title">События мастера</h2>
+        <table class="report-table" id="eventsTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <footer class="report-footer">
+        <span>SolarBridge <b id="footerVersionReport">--</b></span>
+        <span data-i18n="report.footer_note">Read-only данные из БД SolarBridge · тарифы применяются на дату · Ctrl+P → сохранить как PDF</span>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

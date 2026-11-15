@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3ec">
+  <meta name="description" content="Локальный read-only мониторинг HIDEN HS-20-5548 PRO">
+  <title>HIDEN</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-brand">
+      <a class="brand" href="/" aria-label="HIDEN Control"><img class="brand-logo" src="/assets/logo.svg" alt="HIDEN Control"><img class="brand-logo brand-logo-ink-dark" src="/assets/logo-white.svg" alt=""></a>
+      <span class="device-chip"><span data-i18n="hero.device">HS-20-5548 PRO</span><i class="chip-dot"></i><span id="sourcePort">USB serial</span></span>
+    </div>
+    <div class="topbar-meta">
+      <span class="meta-chip"><span data-i18n="hero.last">Последние данные</span><strong id="lastUpdated" data-i18n="common.waiting">ожидание...</strong></span>
+      <button class="alarm-badge" id="alarmBadge" type="button" data-severity="error" hidden>
+        <span class="alarm-dot"></span>
+        <span id="alarmBadgeText"></span>
+      </button>
+      <div class="connection-badge" id="connectionBadge" data-state="starting" aria-live="polite">
+        <span class="status-dot"></span>
+        <span id="connectionLabel" data-i18n="system.starting">Запуск сервиса</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="language-switcher" role="group" data-i18n-aria-label="language.label">
+        <button type="button" data-lang="ru" aria-pressed="true">RUS</button><span>|</span><button type="button" data-lang="en" aria-pressed="false">ENG</button>
+      </div>
+      <button class="icon-button" id="themeToggle" type="button" title="Переключить на тёмную тему" aria-label="Переключить тему">
+        <svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 14.2A8.4 8.4 0 0 1 9.8 3.6a8.4 8.4 0 1 0 10.6 10.6z"/></svg>
+        <svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/></svg>
+      </button>
+      <button class="icon-button" id="refreshButton" type="button" data-i18n-title="common.refresh" data-i18n-aria-label="common.refresh" title="Обновить данные" aria-label="Обновить данные">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3M4 5v4h4M4 13a8 8 0 0 0 14.9 3M20 19v-4h-4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="section-tabs" aria-label="Разделы дашборда">
+    <a href="#sec-01" data-i18n="tab.01">01 · Сейчас</a>
+    <a href="#sec-02" data-i18n="tab.02">02 · Батареи</a>
+    <a href="#sec-03" data-i18n="tab.03">03 · Графики</a>
+    <a href="#sec-04" data-i18n="tab.04">04 · Система</a>
+    <a href="#sec-05" data-i18n="tab.05">05 · Детали</a>
+    <a href="#sec-06" data-i18n="tab.06">06 · Параметры</a>
+    <a href="#sec-07" data-i18n="tab.07">07 · Диагностика</a>
+    <a href="#sec-08" data-i18n="tab.08">08 · Финансы</a>
+    <a href="#sec-09" data-i18n="tab.09">09 · PC Master</a>
+  </nav>
+
+  <div class="shell">
+    <div class="callout" id="versionBanner" hidden>
+      <span class="callout-icon">!</span>
+      <span id="versionBannerText"></span>
+    </div>
+
+    <div class="callout callout-danger" id="diskBanner" hidden>
+      <span class="callout-icon">!</span>
+      <span id="diskBannerText"></span>
+    </div>
+
+    <main>
+      <section id="sec-01" class="block reveal">
+        <div class="section-heading">
+          <div><p class="section-kicker" data-i18n="section.now">01 / СЕЙЧАС</p><h2 data-i18n="section.flow">Мощности сейчас</h2></div>
+          <p class="section-note" id="snapshotNote" data-i18n="snapshot.note">Данные обновляются сами · SSE, каждые 15 с</p>
+        </div>
+        <div class="kpi-grid">
+          <article class="kpi-tile is-pv">
+            <div class="metric-top"><span class="metric-icon">↗</span><span class="metric-label" data-i18n="metric.pv.label">PV мощность</span><span class="live-mark" data-i18n="metric.live">LIVE</span></div>
+            <div class="metric-value" id="pvPower">--</div>
+            <div class="metric-unit" data-i18n="metric.pv.unit">выработка панелей</div>
+            <div class="metric-detail"><span id="pvVoltage">-- V</span><span id="pvCurrent">-- A</span><span class="flow-chip" id="pvFlow" hidden></span></div>
+          </article>
+          <article class="kpi-tile is-load">
+            <div class="metric-top"><span class="metric-icon">◒</span><span class="metric-label" data-i18n="metric.load.label">Нагрузка</span><span class="live-mark" data-i18n="metric.live">LIVE</span></div>
+            <div class="metric-value" id="loadPower">--</div>
+            <div class="metric-unit" data-i18n="metric.load.unit">домашнее потребление</div>
+            <div class="metric-detail"><span id="loadPercent">--%</span><span id="loadCurrent">-- A</span><span class="flow-chip" id="loadFlow" hidden></span></div>
+            <div class="load-track"><span id="loadBar"></span></div>
+          </article>
+          <article class="kpi-tile is-grid">
+            <div class="metric-top"><span class="metric-icon">⌁</span><span class="metric-label" data-i18n="metric.grid.label">Сеть</span><span class="live-mark" data-i18n="metric.live">LIVE</span></div>
+            <div class="metric-value" id="gridPower">--</div>
+            <div class="metric-unit" data-i18n="metric.grid.unit">обмен с сетью</div>
+            <div class="metric-detail"><span id="gridVoltage">-- V</span><span id="gridFrequency">-- Hz</span><span class="flow-chip" id="gridFlow" hidden></span></div>
+          </article>
+          <article class="kpi-tile is-battery">
+            <div class="metric-top"><span class="metric-icon">▰</span><span class="metric-label" data-i18n="metric.battery.label">Батарея</span><span class="live-mark" data-i18n="metric.live">LIVE</span></div>
+            <div class="metric-value" id="batteryVoltage">--</div>
+            <div class="metric-unit" data-i18n="metric.battery.unit">батарея · напряжение</div>
+            <div class="metric-detail"><span id="batteryPower">-- W</span><span class="flow-chip" id="batteryState"></span></div>
+            <div class="battery-track" data-i18n-title="battery.track_title" title="Положение напряжения в рабочем диапазоне, не оценка SOC"><span id="batteryBar"></span></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="sec-02" class="block reveal">
+        <div class="section-heading" id="bankHeading" hidden>
+          <div><p class="section-kicker" data-i18n="bank.kicker">02 / БАТАРЕИ</p><h2 data-i18n="bank.title">Модули батарей</h2></div>
+          <p class="section-note" id="bankNote" data-i18n="bank.note">BMS телеметрия · только чтение</p>
+        </div>
+        <div class="bank-grid" id="bankGrid" hidden></div>
+      </section>
+
+      <section id="sec-03" class="dashboard-columns reveal">
+        <article class="panel chart-panel">
+          <div class="panel-heading chart-heading">
+            <div><p class="section-kicker" data-i18n="history.kicker">03 / ГРАФИКИ</p><h2 data-i18n="history.title">История показателей</h2></div>
+            <div class="chart-controls" role="group" data-i18n-aria-label="history.range_aria" aria-label="Период истории">
+              <button type="button" class="range-button is-active" data-range="24h" data-i18n="range.24h">24 ч</button>
+              <button type="button" class="range-button" data-range="7d" data-i18n="range.7d">7 дней</button>
+              <button type="button" class="range-button" data-range="30d" data-i18n="range.30d">30 дней</button>
+              <button type="button" class="range-button" data-range="1y" data-i18n="range.1y">1 год</button>
+              <button type="button" class="range-button" data-range="all" data-i18n="range.all">Всё</button>
+            </div>
+          </div>
+          <div class="today-strip" id="todayStrip" hidden data-i18n-title="today.note" title="кWh с начала суток · дельты счётчиков инвертора">
+            <div class="today-item is-pv"><span data-i18n="today.pv">PV</span><strong id="todayPv">--</strong></div>
+            <div class="today-item is-load"><span data-i18n="today.load">Нагрузка</span><strong id="todayLoad">--</strong></div>
+            <div class="today-item is-grid"><span data-i18n="today.grid">Сеть</span><strong id="todayGrid">--</strong></div>
+            <div class="today-item is-batt"><span data-i18n="today.batt">Батарея</span><strong id="todayBatt">--</strong></div>
+          </div>
+          <div class="chart-toolbar">
+            <label><span data-i18n="history.metric">Показатель</span>
+              <select id="metricSelect">
+                <optgroup label="Power flow" data-i18n-label="metric.group_power">
+                  <option value="load_power_w" data-i18n="metric.option_load_power">Нагрузка, W</option>
+                  <option value="pv_power_w" data-i18n="metric.option_pv_power">PV генерация, W</option>
+                  <option value="grid_power_w" data-i18n="metric.option_grid_power">Поток сети, W</option>
+                  <option value="battery_power_w" data-i18n="metric.option_battery_power">Мощность батареи, W</option>
+                  <option value="load_percent" data-i18n="metric.option_load_percent">Нагрузка, %</option>
+                </optgroup>
+                <optgroup label="Voltage" data-i18n-label="metric.group_voltage">
+                  <option value="battery_voltage_v" data-i18n="metric.option_battery_voltage">Батарея, V</option>
+                  <option value="pv_voltage_v" data-i18n="metric.option_pv_voltage">PV voltage, V</option>
+                  <option value="inverter_voltage_v" data-i18n="metric.option_inverter_voltage">AC output, V</option>
+                  <option value="grid_voltage_v" data-i18n="metric.option_grid_voltage">Grid, V</option>
+                  <option value="bus_voltage_v" data-i18n="metric.option_bus_voltage">DC bus, V</option>
+                </optgroup>
+                <optgroup label="Current / frequency" data-i18n-label="metric.group_current">
+                  <option value="pv_current_a" data-i18n="metric.option_pv_current">PV current, A</option>
+                  <option value="inverter_current_a" data-i18n="metric.option_inverter_current">AC output current, A</option>
+                  <option value="grid_current_a" data-i18n="metric.option_grid_current">Grid current, A</option>
+                  <option value="load_current_a" data-i18n="metric.option_load_current">Load current, A</option>
+                  <option value="inverter_frequency_hz" data-i18n="metric.option_inverter_frequency">Inverter frequency, Hz</option>
+                  <option value="grid_frequency_hz" data-i18n="metric.option_grid_frequency">Grid frequency, Hz</option>
+                </optgroup>
+                <optgroup label="Temperature" data-i18n-label="metric.group_temperature">
+                  <option value="ac_radiator_temperature_c" data-i18n="metric.option_ac_temp">AC radiator, °C</option>
+                  <option value="transformer_temperature_c" data-i18n="metric.option_transformer_temp">Transformer, °C</option>
+                  <option value="dc_radiator_temperature_c" data-i18n="metric.option_dc_temp">DC radiator, °C</option>
+                </optgroup>
+              </select>
+            </label>
+            <label><span data-i18n="history.resolution">Разрешение</span>
+              <select id="periodSelect">
+                <option value="minute" data-i18n="period.minute">1 мин</option>
+                <option value="30m" selected data-i18n="period.30m">30 мин</option>
+                <option value="hour" data-i18n="period.hour">Час</option>
+                <option value="day" data-i18n="period.day">День</option>
+                <option value="week" data-i18n="period.week">Неделя</option>
+                <option value="month" data-i18n="period.month">Месяц</option>
+                <option value="raw" data-i18n="period.raw">Raw samples</option>
+              </select>
+            </label>
+            <a class="export-link" id="exportLink" href="/api/export.csv?range=24h&amp;period=30m"><span data-i18n="history.export">CSV export</span> <span>↓</span></a>
+            <a class="export-link report-link" href="/report?days=30" target="_blank" rel="noopener" data-i18n-title="history.report_title"><span data-i18n="history.report">Отчёт PDF</span> <span>⎙</span></a>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="historyChart" data-i18n-aria-label="history.chart_aria" aria-label="График исторических показателей"></canvas>
+            <div class="chart-empty" id="chartEmpty" data-i18n="history.empty">История появится после первых сохранённых samples</div>
+          </div>
+          <div class="chart-footer"><span id="historySummary" data-i18n="history.no_data">Нет сохранённых данных</span><span class="chart-legend"><i></i><span id="legendLabel">Нагрузка</span></span></div>
+        </article>
+
+        <aside class="panel status-panel" id="sec-04">
+          <div class="panel-heading"><div><p class="section-kicker" data-i18n="status.kicker">04 / СОСТОЯНИЕ</p><h2 data-i18n="status.title">Система</h2></div><span class="status-code" id="workState">--</span></div>
+          <div class="system-state" id="systemState" data-state="starting"><span class="state-orb"></span><div><strong id="systemStateTitle" data-i18n="system.waiting">Ожидание</strong><span id="systemStateText" data-i18n="system.connecting">Подключение к инвертору</span></div></div>
+          <div class="status-list">
+            <div><span data-i18n="status.model">Модель</span><strong id="identityModel">--</strong></div>
+            <div><span data-i18n="status.nominal">Номинал</span><strong id="ratedPower">--</strong></div>
+            <div><span data-i18n="status.serial">Serial number</span><strong class="mono" id="identitySerial">--</strong></div>
+            <div><span data-i18n="status.firmware">Firmware</span><strong class="mono" id="identityFirmware">--</strong></div>
+            <div><span data-i18n="status.protocol">Протокол</span><strong class="mono" id="protocolVersion">--</strong></div>
+            <div><span data-i18n="status.charger_model">Зарядник</span><strong class="mono" id="chargerIdentity">--</strong></div>
+            <div><span data-i18n="status.charger_state">Стадия зарядника</span><strong id="chargerStage">--</strong></div>
+            <div><span data-i18n="status.poll">Последний poll</span><strong id="pollLatency">--</strong></div>
+          </div>
+          <div class="relay-strip" id="relayStrip" data-i18n-aria-label="relay.aria" aria-label="Состояние реле"></div>
+          <div class="health-strip"><span class="health-icon">✓</span><span id="healthMessage" data-i18n="health.active">Канал read-only: команд записи не существует</span></div>
+        </aside>
+      </section>
+
+      <section id="sec-05" class="block reveal">
+        <div class="section-heading telemetry-heading">
+          <div><p class="section-kicker" data-i18n="telemetry.kicker">05 / ДЕТАЛИ</p><h2 data-i18n="telemetry.title">Детали сигнала</h2></div>
+        </div>
+        <div class="telemetry-grid">
+          <article class="panel telemetry-card"><div class="telemetry-title"><span class="telemetry-glyph">AC</span><span data-i18n="telemetry.ac">AC output</span></div><div class="telemetry-main" id="inverterVoltage">-- V</div><dl><div><dt data-i18n="telemetry.current">Ток</dt><dd id="inverterCurrent">-- A</dd></div><div><dt data-i18n="telemetry.frequency">Частота</dt><dd id="inverterFrequency">-- Hz</dd></div><div><dt data-i18n="telemetry.reactive">Reactive</dt><dd id="inverterReactive">-- var</dd></div><div><dt data-i18n="telemetry.pf">cos φ</dt><dd id="inverterPowerFactor">--</dd></div></dl></article>
+          <article class="panel telemetry-card"><div class="telemetry-title"><span class="telemetry-glyph">DC</span><span data-i18n="telemetry.dc">DC / bus</span></div><div class="telemetry-main" id="busVoltage">-- V</div><dl><div><dt data-i18n="telemetry.battery_current">Battery current</dt><dd id="batteryCurrent">-- A</dd></div><div><dt data-i18n="telemetry.pv_voltage">PV voltage</dt><dd id="pvVoltageDetail">-- V</dd></div><div><dt data-i18n="telemetry.pv_current">PV current</dt><dd id="pvCurrentDetail">-- A</dd></div></dl></article>
+          <article class="panel telemetry-card"><div class="telemetry-title"><span class="telemetry-glyph">°C</span><span data-i18n="telemetry.temperatures">Temperatures</span></div><div class="temperature-main"><div><strong id="tempAc">--</strong><span data-i18n="telemetry.ac_radiator">AC radiator</span></div><div><strong id="tempDc">--</strong><span data-i18n="telemetry.dc_radiator">DC radiator</span></div></div><dl><div><dt data-i18n="telemetry.transformer">Transformer</dt><dd id="tempTransformer">-- °C</dd></div><div><dt data-i18n="telemetry.charger_radiator">Charger radiator</dt><dd id="tempCharger">-- °C</dd></div></dl></article>
+          <article class="panel telemetry-card"><div class="telemetry-title"><span class="telemetry-glyph">Σ</span><span data-i18n="telemetry.accumulated">Accumulated</span></div><div class="telemetry-main" id="accumulatedLoad">-- kWh</div><dl><div><dt data-i18n="telemetry.charged">Charged</dt><dd id="accumulatedCharge">-- kWh</dd></div><div><dt data-i18n="telemetry.discharged">Discharged</dt><dd id="accumulatedDischarge">-- kWh</dd></div><div><dt data-i18n="telemetry.uptime">Charger uptime</dt><dd id="chargerUptime">--</dd></div></dl></article>
+        </div>
+      </section>
+
+      <section id="sec-06" class="lower-grid reveal">
+        <article class="panel config-panel"><div class="panel-heading"><div><p class="section-kicker" data-i18n="config.kicker">06 / ПАРАМЕТРЫ</p><h2 data-i18n="config.title">Настройки инвертора</h2></div><span class="read-only-tag" data-i18n="config.readonly">READ ONLY</span></div><div class="config-columns"><div><h3 data-i18n="config.charger">Зарядный контур</h3><div id="chargerConfig" class="key-value-list"></div></div><div><h3 data-i18n="config.inverter">Инверторный контур</h3><div id="inverterConfig" class="key-value-list"></div></div></div></article>
+        <article class="panel diagnostics-panel" id="sec-07"><div class="panel-heading"><div><p class="section-kicker" data-i18n="diagnostics.kicker">07 / СОБЫТИЯ</p><h2 data-i18n="diagnostics.title">Диагностика</h2></div><span class="diagnostic-badge" id="diagnosticBadge" data-i18n="diagnostics.nominal">NOMINAL</span></div><div class="alarm-chips" id="alarmChips" hidden><p class="alarm-chips-title" data-i18n="diagnostics.active">Активные события</p><div class="alarm-chips-list" id="alarmChipsList"></div></div><div id="diagnosticsList" class="diagnostic-list"></div><details class="raw-details"><summary><span data-i18n="diagnostics.raw">Raw register frames</span> <span class="raw-expand" data-i18n="diagnostics.expand">развернуть</span></summary><div id="rawRegisters"></div></details></article>
+      </section>
+
+      <section id="sec-08" class="block reveal">
+        <div class="section-heading">
+          <div><p class="section-kicker" data-i18n="finance.kicker">08 / ФИНАНСЫ</p><h2 data-i18n="finance.title">Энергия и деньги</h2></div>
+          <p class="section-note" data-i18n="finance.note">Оценка по вашим тарифам · правка тарифа пересчитывает историю мгновенно</p>
+        </div>
+        <div class="finance-grid">
+          <article class="panel finance-panel">
+            <div class="finance-cards">
+              <article class="finance-card" id="financeCardY" hidden>
+                <div class="finance-card-head"><span class="finance-card-kicker" data-i18n="finance.yesterday">Вчера</span><span class="finance-card-date" id="finYDate">--</span></div>
+                <div class="finance-card-main"><strong id="finYNet">--</strong><span class="finance-card-sub" data-i18n="finance.net_label">экономия PV − покупки сети</span></div>
+                <dl class="finance-card-rows">
+                  <div><dt data-i18n="finance.pv">PV генерация</dt><dd id="finYPv">--</dd></div>
+                  <div><dt data-i18n="finance.pv_savings">Экономия PV</dt><dd id="finYSavings">--</dd></div>
+                  <div><dt data-i18n="finance.load">Нагрузка</dt><dd id="finYLoad">--</dd></div>
+                  <div><dt data-i18n="finance.grid_buy">Куплено из сети</dt><dd id="finYBuy">--</dd></div>
+                  <div><dt data-i18n="finance.grid_cost">Расходы</dt><dd id="finYBuyCost">--</dd></div>
+                  <div id="finYChargeGridRow" hidden><dt data-i18n="finance.charge_grid_incl">в т.ч. заряд из сети</dt><dd id="finYChargeGridCost">--</dd></div>
+                  <div><dt data-i18n="finance.grid_sell">PV в сеть дома</dt><dd id="finYSell">--</dd></div>
+                  <div><dt data-i18n="finance.charge">Заряд батареи</dt><dd id="finYCharge">--</dd></div>
+                  <div><dt data-i18n="finance.charge_break">из PV · из сети</dt><dd id="finYChargeBreak">--</dd></div>
+                  <div><dt data-i18n="finance.discharge">Разряд батареи</dt><dd id="finYDischarge">--</dd></div>
+                  <div><dt data-i18n="finance.tariff">Тариф</dt><dd id="finYTariff">--</dd></div>
+                  <div><dt data-i18n="finance.coverage">Данных за</dt><dd id="finYHours">--</dd></div>
+                </dl>
+                <div class="finance-total" data-i18n-title="finance.load_total_hint" title="Вся нагрузка, оценённая по тарифу. Фактические затраты — строка «Расходы».">
+                  <div><span data-i18n="finance.load_total">Итого в нагрузку</span><strong id="finYLoadTotal">--</strong></div>
+                  <div><span data-i18n="finance.load_total_cost">Стоимость по тарифу</span><strong id="finYLoadTotalCost">--</strong></div>
+                </div>
+              </article>
+              <article class="finance-card is-live" id="financeCardT" hidden>
+                <div class="finance-card-head"><span class="finance-card-kicker" data-i18n="finance.today_live">Сегодня · LIVE</span><span class="finance-card-date" id="finTDate">--</span></div>
+                <div class="finance-card-main"><strong id="finTNet">--</strong><span class="finance-card-sub" data-i18n="finance.net_label">экономия PV − покупки сети</span></div>
+                <dl class="finance-card-rows">
+                  <div><dt data-i18n="finance.pv">PV генерация</dt><dd id="finTPv">--</dd></div>
+                  <div><dt data-i18n="finance.pv_savings">Экономия PV</dt><dd id="finTSavings">--</dd></div>
+                  <div><dt data-i18n="finance.load">Нагрузка</dt><dd id="finTLoad">--</dd></div>
+                  <div><dt data-i18n="finance.grid_buy">Куплено из сети</dt><dd id="finTBuy">--</dd></div>
+                  <div><dt data-i18n="finance.grid_cost">Расходы</dt><dd id="finTBuyCost">--</dd></div>
+                  <div id="finTChargeGridRow" hidden><dt data-i18n="finance.charge_grid_incl">в т.ч. заряд из сети</dt><dd id="finTChargeGridCost">--</dd></div>
+                  <div><dt data-i18n="finance.grid_sell">PV в сеть дома</dt><dd id="finTSell">--</dd></div>
+                  <div><dt data-i18n="finance.charge">Заряд батареи</dt><dd id="finTCharge">--</dd></div>
+                  <div><dt data-i18n="finance.charge_break">из PV · из сети</dt><dd id="finTChargeBreak">--</dd></div>
+                  <div><dt data-i18n="finance.discharge">Разряд батареи</dt><dd id="finTDischarge">--</dd></div>
+                  <div><dt data-i18n="finance.tariff">Тариф</dt><dd id="finTTariff">--</dd></div>
+                  <div><dt data-i18n="finance.coverage">Данных за</dt><dd id="finTHours">--</dd></div>
+                </dl>
+                <div class="finance-total" data-i18n-title="finance.load_total_hint" title="Вся нагрузка, оценённая по тарифу. Фактические затраты — строка «Расходы».">
+                  <div><span data-i18n="finance.load_total">Итого в нагрузку</span><strong id="finTLoadTotal">--</strong></div>
+                  <div><span data-i18n="finance.load_total_cost">Стоимость по тарифу</span><strong id="finTLoadTotalCost">--</strong></div>
+                </div>
+              </article>
+            </div>
+            <p class="finance-empty" id="financeEmpty" data-i18n="finance.empty" hidden>Строки появятся после первых замеров. Задайте тариф справа, чтобы видеть деньги.</p>
+          </article>
+          <article class="panel tariff-panel">
+            <div class="panel-heading"><div><p class="section-kicker" data-i18n="tariff.kicker">ТАРИФ</p><h2 data-i18n="tariff.title">Цена кВт·ч</h2></div><span class="read-only-tag tariff-tag" data-i18n="tariff.local_tag">LOCAL</span></div>
+            <div class="tariff-current">
+              <strong id="tariffCurrentPrice">--</strong>
+              <span class="tariff-current-since" id="tariffCurrentSince">--</span>
+            </div>
+            <details class="tariff-details" id="tariffDetails">
+              <summary><span data-i18n="tariff.expand">Подробнее: редактор и история тарифов</span><span class="tariff-caret" aria-hidden="true">▾</span></summary>
+              <form class="tariff-form" id="tariffForm" autocomplete="off">
+                <label class="tariff-field"><span data-i18n="tariff.price">Цена, ₽/кВт·ч</span><input id="tariffPrice" type="number" step="0.0001" min="0" inputmode="decimal" required></label>
+                <label class="tariff-field"><span data-i18n="tariff.valid_from">Действует с</span><input id="tariffValidFrom" type="date" required></label>
+                <label class="tariff-field tariff-field-wide"><span data-i18n="tariff.note">Заметка</span><input id="tariffNote" type="text" maxlength="200" data-i18n-placeholder="tariff.note_placeholder" placeholder="например: летний"></label>
+                <button class="tariff-submit" type="submit" data-i18n="tariff.save">Сохранить тариф</button>
+                <span class="tariff-status" id="tariffStatus" role="status" aria-live="polite"></span>
+              </form>
+              <div class="tariff-list" id="tariffList"></div>
+            </details>
+          </article>
+        </div>
+      </section>
+
+      <section id="sec-09" class="block reveal">
+        <div class="section-heading">
+          <div><p class="section-kicker" data-i18n="machine.kicker">09 / PC MASTER POLL</p><h2 data-i18n="machine.title">PC Master</h2></div>
+          <p class="section-note" data-i18n="machine.note">Нагрузка, температура и питание хоста мастера · обновление с heartbeat</p>
+        </div>
+        <div class="machine-grid" id="machineSection" hidden>
+          <article class="panel machine-panel">
+            <div class="machine-tiles">
+              <div class="machine-tile"><span data-i18n="machine.cpu_temp">CPU</span><strong id="machineCpu">--</strong></div>
+              <div class="machine-tile"><span data-i18n="machine.load">Load 1/5/15</span><strong id="machineLoad">--</strong></div>
+              <div class="machine-tile"><span data-i18n="machine.ram">RAM</span><strong id="machineRam">--</strong></div>
+              <div class="machine-tile"><span data-i18n="machine.disk">Диск</span><strong id="machineDisk">--</strong></div>
+            </div>
+            <dl class="machine-rows">
+              <div><dt data-i18n="machine.master_id">master_id</dt><dd id="machineId">--</dd></div>
+              <div><dt data-i18n="machine.version">Версия мастера</dt><dd id="machineVersion">--</dd></div>
+              <div><dt data-i18n="machine.uptime">Uptime сервиса</dt><dd id="machineUptime">--</dd></div>
+              <div><dt data-i18n="machine.host_uptime">Uptime машины</dt><dd id="machineHostUptime">--</dd></div>
+              <div><dt data-i18n="machine.throttled">Питание (throttled)</dt><dd id="machineThrottled">--</dd></div>
+              <div><dt data-i18n="machine.heartbeat">Heartbeat</dt><dd id="machineHeartbeat">--</dd></div>
+            </dl>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><span>HIDEN CONTROL <b id="footerVersion">v1.0.1</b></span><span data-i18n="footer">Локальный сервис · Modbus RTU только чтение · время в UTC</span></footer>
+  </div>
+
+  <div class="auth-overlay" id="authOverlay" hidden>
+    <form class="auth-card" id="authForm">
+      <img class="auth-logo" src="/assets/logo.svg" alt="HIDEN Control"><img class="auth-logo auth-logo-ink-dark" src="/assets/logo-white.svg" alt="">
+      <h2 data-i18n="auth.title">Требуется вход</h2>
+      <label class="auth-field"><span data-i18n="auth.login">Логин</span><input id="authLogin" autocomplete="username" required></label>
+      <label class="auth-field"><span data-i18n="auth.password">Пароль</span><input id="authPassword" type="password" autocomplete="current-password" required></label>
+      <button class="auth-submit" type="submit" data-i18n="auth.submit">Войти</button>
+      <p class="auth-error" id="authError" hidden data-i18n="auth.error">Неверный логин или пароль</p>
+    </form>
+  </div>
+</body>
+</html>

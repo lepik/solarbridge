@@ -1,0 +1,48 @@
+[Unit]
+Description=SolarBridge inverter dashboard and forwarder
+After=local-fs.target network.target
+Wants=local-fs.target
+
+[Service]
+Type=simple
+# Read-only application: it exposes no inverter write operation.
+User=sbridge
+Group=sbridge
+SupplementaryGroups=dialout
+WorkingDirectory=/opt/solarbridge
+Environment=PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ExecStart=/opt/solarbridge/.venv/bin/python /opt/solarbridge/main.py
+Restart=always
+RestartSec=5
+UMask=0027
+
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateTmp=true
+PrivateDevices=false
+DevicePolicy=closed
+# Two RS485 adapters (inverter + battery bus) enumerate as ttyUSB0/1 and may
+# swap numbering across reconnects. char-ttyUSB whitelists the whole USB-serial
+# class, so every /dev/ttyUSB* node stays accessible regardless of numbering.
+# If a converter ever enumerates as ttyACM (CDC-ACM driver), add:
+#   DeviceAllow=char-ttyACM rw
+DeviceAllow=char-ttyUSB rw
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/solarbridge/data
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectClock=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
