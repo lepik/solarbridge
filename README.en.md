@@ -211,6 +211,7 @@ screenshots/               dashboard screenshots
 README.md / README.en.md   this file (ru/en)
 INSTALL.md / INSTALL.en.md step-by-step installation (ru/en)
 CHANGELOG.md               version history
+LICENSE                     project license (MIT); the HIDEN logo belongs to the manufacturer
 requirements.txt           pyserial>=3.5 — the only external dependency
 ```
 
@@ -234,4 +235,4 @@ requirements.txt           pyserial>=3.5 — the only external dependency
 
 **Read-only.** SolarBridge contains no write commands for the inverter or the BMS — they do not exist and will not be added.
 
-HIDEN and MUST are trademarks of their respective owners. SolarBridge is an independent project, not affiliated with the manufacturers; compatibility is verified on the hardware listed in this README.
+HIDEN and MUST are trademarks of their respective owners. SolarBridge is an independent project, not affiliated with the manufacturers; compatibility is verified on the hardware listed in this README. The HIDEN logo in the UI is used for hardware identification and belongs to the manufacturer (the project license covers the code and documentation only — see LICENSE).
